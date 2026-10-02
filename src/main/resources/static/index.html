@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>AutoLoc - Gestion des véhicules</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<header class="topbar">
+    <div class="container topbar__inner">
+        <div class="brand">
+            <span class="brand__logo"><i class="bi bi-car-front"></i></span>
+            <div>
+                <h1 class="brand__title">AutoLoc</h1>
+                <p class="brand__subtitle">Plateforme de gestion de location de véhicules</p>
+            </div>
+        </div>
+        <div class="topbar__meta">
+            <span class="chip"><i class="bi bi-diagram-2"></i> Atelier 1 – Modèle de persistance (JPA)</span>
+            <a class="btn btn--ghost" href="/vehicules" target="_blank" rel="noopener">
+                <i class="bi bi-braces-asterisk"></i>
+                API /vehicules (JSON)
+            </a>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <section class="card">
+        <div class="card__header">
+            <div>
+                <h2 class="card__title">Gestion des véhicules</h2>
+                <p class="card__subtitle">Lister, filtrer et ajouter des véhicules (consommation de l'API REST)</p>
+            </div>
+            <div class="card__actions">
+                <button class="btn btn--ghost" id="btn-refresh">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Rafraîchir
+                </button>
+                <button class="btn btn--primary" id="btn-open-form">
+                    <i class="bi bi-plus-lg"></i>
+                    Ajouter un véhicule
+                </button>
+                <button class="btn btn--danger btn--ghost" id="btn-delete-all">
+                    <i class="bi bi-trash3"></i>
+                    Supprimer tout
+                </button>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="filter__group">
+                <label class="label">Recherche</label>
+                <div class="search">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="search" placeholder="Rechercher par marque, modèle ou immatriculation..."/>
+                </div>
+            </div>
+
+            <div class="filter__group">
+                <label class="label">Disponibilité</label>
+                <div class="segmented">
+                    <button class="segmented__btn active" data-filter="all">Tous</button>
+                    <button class="segmented__btn" data-filter="true">Disponibles</button>
+                    <button class="segmented__btn" data-filter="false">Non disponibles</button>
+                </div>
+            </div>
+
+            <div class="filter__group">
+                <label class="label">Catégorie</label>
+                <select id="filter-categorie">
+                    <option value="all">Toutes les catégories</option>
+                    <option value="CITADINE">Citadine</option>
+                    <option value="BERLINE">Berline</option>
+                    <option value="SUV">SUV</option>
+                    <option value="MONOSPACE">Monospace</option>
+                    <option value="UTILITAIRE">Utilitaire</option>
+                </select>
+            </div>
+
+            <div class="filter__group">
+                <label class="label">Statut</label>
+                <select id="filter-statut">
+                    <option value="all">Tous les statuts</option>
+                    <option value="DISPONIBLE">Disponible</option>
+                    <option value="LOUE">Loué</option>
+                    <option value="MAINTENANCE">Maintenance</option>
+                </select>
+            </div>
+
+            <div class="filter__group filter__group--end">
+                <span class="stat"><strong id="count-total">0</strong> véhicule(s) total</span>
+                <span class="stat stat--success"><strong id="count-dispo">0</strong> dispo</span>
+                <span class="stat stat--warning"><strong id="count-loue">0</strong> loué(s)</span>
+                <span class="stat stat--muted"><strong id="count-maint">0</strong> maintenance</span>
+            </div>
+        </div>
+
+        <div class="table-wrapper" id="table-wrapper">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Marque</th>
+                    <th>Modèle</th>
+                    <th>Immatriculation</th>
+                    <th>Couleur</th>
+                    <th>Prix/jour</th>
+                    <th>Disponible</th>
+                    <th>Statut</th>
+                    <th>Catégorie</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+            <div class="empty-state hidden" id="empty-state">
+                <i class="bi bi-car-front-fill"></i>
+                <h3>Aucun véhicule trouvé</h3>
+                <p>Modifie les filtres ou ajoute un nouveau véhicule.</p>
+                <button class="btn btn--primary mt-3" id="btn-empty-add">
+                    <i class="bi bi-plus-lg"></i>
+                    Ajouter un véhicule
+                </button>
+            </div>
+            <div class="skeleton hidden" id="skeleton">
+                <div class="skeleton__row"></div>
+                <div class="skeleton__row"></div>
+                <div class="skeleton__row"></div>
+                <div class="skeleton__row"></div>
+                <div class="skeleton__row"></div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<dialog class="modal" id="modal-add">
+    <form id="form-add">
+        <div class="modal__header">
+            <h3 class="modal__title">Ajouter un véhicule</h3>
+            <button type="button" class="btn btn--icon" id="btn-close-form">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <div class="modal__body grid">
+            <div class="field">
+                <label class="label">Marque <span class="req">*</span></label>
+                <input type="text" name="marque" placeholder="Ex. Peugeot" required maxlength="50"/>
+            </div>
+            <div class="field">
+                <label class="label">Modèle <span class="req">*</span></label>
+                <input type="text" name="modele" placeholder="Ex. 208" required maxlength="50"/>
+            </div>
+            <div class="field">
+                <label class="label">Immatriculation <span class="req">*</span></label>
+                <input type="text" name="immatriculation" placeholder="Ex. 123-TUN-001" required maxlength="20"/>
+            </div>
+            <div class="field">
+                <label class="label">Couleur</label>
+                <input type="text" name="couleur" placeholder="Ex. Blanc" maxlength="30"/>
+            </div>
+            <div class="field">
+                <label class="label">Prix/jour (DT) <span class="req">*</span></label>
+                <input type="number" name="prixJour" step="0.01" min="0" placeholder="250.00" required/>
+            </div>
+            <div class="field">
+                <label class="label">Disponible</label>
+                <select name="disponible">
+                    <option value="true">Oui</option>
+                    <option value="false">Non</option>
+                </select>
+            </div>
+            <div class="field">
+                <label class="label">Statut <span class="req">*</span></label>
+                <select name="statut" required>
+                    <option value="DISPONIBLE">DISPONIBLE</option>
+                    <option value="LOUE">LOUE</option>
+                    <option value="MAINTENANCE">MAINTENANCE</option>
+                </select>
+            </div>
+            <div class="field">
+                <label class="label">Catégorie <span class="req">*</span></label>
+                <select name="categorie" required>
+                    <option value="CITADINE">CITADINE</option>
+                    <option value="BERLINE">BERLINE</option>
+                    <option value="SUV">SUV</option>
+                    <option value="MONOSPACE">MONOSPACE</option>
+                    <option value="UTILITAIRE">UTILITAIRE</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="modal__footer">
+            <button type="button" class="btn btn--ghost" id="btn-cancel-form">Annuler</button>
+            <button type="submit" class="btn btn--primary">
+                <i class="bi bi-check-lg"></i>
+                Enregistrer
+            </button>
+        </div>
+    </form>
+</dialog>
+
+<div class="toast hidden" id="toast"></div>
+
+<script src="/js/app.js"></script>
+</body>
+</html>
