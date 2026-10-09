@@ -17,11 +17,12 @@ AutoLoc — Atelier 1 (UP ASI, Esprit). Modele de persistance JPA du cas d'etude
 src/main/java/tn/esprit/autoloc/
 ├── AutolocApiApplication.java
 ├── domain/        # 9 entites JPA + 5 enums
-├── repository/    # (Atelier 2)
-├── service/       # (Atelier 2)
+├── exception/     # ResourceNotFoundException
+├── repository/    # 9 repositories Spring Data JPA + requetes derivees
+├── service/       # 9 services (interfaces) + service/impl (9 implementations)
 └── web/
-    ├── controller/# (Atelier 2)
-    └── dto/       # (Atelier 2)
+    ├── controller/# VehiculeController
+    └── dto/       # (a venir)
 ```
 
 ## Entites
@@ -38,7 +39,7 @@ src/main/java/tn/esprit/autoloc/
 | `paiement` | `Paiement` | idPaiement, montant, datePaiement, modePaiement |
 | `maintenance` | `Maintenance` | idMaintenance, dateDebut, dateFin, description |
 
-Les associations (`@OneToMany`, `@ManyToOne`, ...) seront ajoutees en Atelier 2.
+Les associations (`@OneToMany`, `@ManyToOne`, ...) ont ete ajoutees en Atelier 2.
 
 ## Configuration de la base de donnees
 

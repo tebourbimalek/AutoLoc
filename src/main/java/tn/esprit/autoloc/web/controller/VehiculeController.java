@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import tn.esprit.autoloc.domain.Vehicule;
-import tn.esprit.autoloc.repository.VehiculeRepository;
+import tn.esprit.autoloc.repository.IVehiculeRepository;
 
 import java.util.List;
 
@@ -19,9 +19,9 @@ import java.util.List;
 @RequestMapping("/vehicules")
 public class VehiculeController {
 
-    private final VehiculeRepository repository;
+    private final IVehiculeRepository repository;
 
-    public VehiculeController(VehiculeRepository repository) {
+    public VehiculeController(IVehiculeRepository repository) {
         this.repository = repository;
     }
 
