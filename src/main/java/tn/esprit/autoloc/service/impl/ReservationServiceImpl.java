@@ -2,7 +2,6 @@ package tn.esprit.autoloc.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import tn.esprit.autoloc.domain.Reservation;
 import tn.esprit.autoloc.exception.ResourceNotFoundException;
@@ -10,7 +9,6 @@ import tn.esprit.autoloc.repository.IReservationRepository;
 import tn.esprit.autoloc.service.IReservationService;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,16 +17,29 @@ public class ReservationServiceImpl implements IReservationService {
     private final IReservationRepository reservationRepository;
 
     @Override
-    @Transactional
-    public Reservation add(Reservation reservation) {
+    public Reservation create(Reservation reservation) {
+        if (reservation.getIdReservation() != null) {
+            throw new IllegalArgumentException("L'identifiant de la réservation doit être null lors de la création");
+        }
+        valider(reservation);
         return reservationRepository.save(reservation);
     }
 
     @Override
-    @Transactional
-    public Reservation update(Reservation reservation) {
-        Reservation existing = reservationRepository.findById(reservation.getIdReservation())
-                .orElseThrow(() -> new ResourceNotFoundException("Reservation introuvable: " + reservation.getIdReservation()));
+    public Reservation findById(Long id) {
+        return reservationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation", id));
+    }
+
+    @Override
+    public List<Reservation> findAll() {
+        return reservationRepository.findAll();
+    }
+
+    @Override
+    public Reservation update(Long id, Reservation reservation) {
+        Reservation existing = findById(id);
+        valider(reservation);
         existing.setDateDebut(reservation.getDateDebut());
         existing.setDateFin(reservation.getDateFin());
         existing.setStatut(reservation.getStatut());
@@ -38,35 +49,19 @@ public class ReservationServiceImpl implements IReservationService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public Optional<Reservation> findById(Long id) {
-        return reservationRepository.findById(id);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<Reservation> findAll() {
-        return reservationRepository.findAll();
-    }
-
-    @Override
-    @Transactional
     public void deleteById(Long id) {
         if (!reservationRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Reservation introuvable: " + id);
+            throw new ResourceNotFoundException("Reservation", id);
         }
         reservationRepository.deleteById(id);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public boolean existsById(Long id) {
-        return reservationRepository.existsById(id);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public long count() {
-        return reservationRepository.count();
+    private void valider(Reservation reservation) {
+        if (reservation.getDateDebut() == null || reservation.getDateFin() == null) {
+            throw new IllegalArgumentException("Les dates de début et de fin de la réservation sont obligatoires");
+        }
+        if (reservation.getDateFin().isBefore(reservation.getDateDebut())) {
+            throw new IllegalArgumentException("La date de fin de la réservation ne peut pas être avant la date de début");
+        }
     }
 }
