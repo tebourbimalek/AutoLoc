@@ -1,0 +1,623 @@
+{
+	"info": {
+		"_postman_id": "a3b1f6c2-4a8e-4f0b-9c3d-autoloc0001",
+		"name": "AutoLoc",
+		"description": "Collection du cas d'étude AutoLoc (Atelier 5 - Spring MVC et SpringDoc).\nExécuter avec l'environnement 'local' : la collection est ordonnée pour un run complet de haut en bas avec le Collection Runner.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Agences",
+			"item": [
+				{
+					"name": "Lister les agences",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/agences",
+						"description": "Retourne toutes les agences (200 attendu)."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 200 - liste des agences\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Enregistrer une agence (capture agenceId)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nom\": \"Agence Tunis-vile\",\r\n  \"ville\": \"Tunis\",\r\n  \"adresse\": \"12 avenue Habib Bourguiba\",\r\n  \"telephone\": \"71123456\"\r\n}"
+						},
+						"url": "{{baseUrl}}/agences",
+						"description": "Crée une agence (201 attendu) et enregistre l'idAgence généré dans la variable d'environnement agenceId."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 201 - agence créée\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var json = pm.response.json();",
+									"pm.test(\"idAgence présent\", function () {",
+									"    pm.expect(json).to.have.property(\"idAgence\");",
+									"});",
+									"if (json.idAgence) {",
+									"    pm.environment.set(\"agenceId\", json.idAgence);",
+									"}"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Consulter l'agence créée",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/agences/{{agenceId}}",
+						"description": "Retourne l'agence créée (200 attendu)."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 200 - agence trouvée\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Modifier l'agence",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nom\": \"Agence Tunis Centre\",\r\n  \"ville\": \"Tunis\",\r\n  \"adresse\": \"12 avenue Habib Bourguiba\",\r\n  \"telephone\": \"71987654\"\r\n}"
+						},
+						"url": "{{baseUrl}}/agences/{{agenceId}}",
+						"description": "Met à jour l'agence créée (200 attendu)."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 200 - agence mise à jour\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Consulter une agence inexistante (404)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/agences/999999",
+						"description": "Cas d'erreur 404 : identifiant inexistant, géré par GlobalExceptionHandler."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 404 - agence introuvable\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Enregistrer une agence sans nom (400)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nom\": \"\",\r\n  \"ville\": \"Tunis\",\r\n  \"adresse\": \"12 avenue Habib Bourguiba\",\r\n  \"telephone\": \"71123456\"\r\n}"
+						},
+						"url": "{{baseUrl}}/agences",
+						"description": "Cas d'erreur 400 : nom obligatoire manquant (IllegalArgumentException -> GlobalExceptionHandler)."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 400 - nom manquant\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Supprimer l'agence",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": "{{baseUrl}}/agences/{{agenceId}}",
+						"description": "Supprime l'agence créée pendant la session (204 attendu). Placé à la fin du dossier pour n'entraver aucun autre appel."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 204 - agence supprimée\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									"if (pm.response.code === 204) {",
+									"    pm.environment.unset(\"agenceId\");",
+									"}"
+								]
+							}
+						}
+					]
+				}
+			],
+			"description": "CRUD complet sur /agences"
+		},
+		{
+			"name": "Vehicules",
+			"item": [
+				{
+					"name": "Lister les véhicules",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/vehicules",
+						"description": "Retourne tous les véhicules (200 attendu)."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 200 - liste des véhicules\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Enregistrer un véhicule (capture vehiculeId)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"marque\": \"Dacia\",\r\n  \"modele\": \"Sandero\",\r\n  \"immatriculation\": \"{{$randomInt}}TU{{$randomInt}}\",\r\n  \"couleur\": \"Blanc\",\r\n  \"prixJour\": 90,\r\n  \"disponible\": true,\r\n  \"statut\": \"DISPONIBLE\",\r\n  \"categorie\": \"CITADINE\",\r\n  \"agence\": null,\r\n  \"equipements\": []\r\n}"
+						},
+						"url": "{{baseUrl}}/vehicules",
+						"description": "Crée un véhicule (201 attendu) et enregistre l'idVehicule généré dans la variable d'environnement vehiculeId. L'immatriculation est multipliée aléatoirement pour éviter le conflit d'unicité lors des re-runs."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 201 - véhicule créé\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var json = pm.response.json();",
+									"pm.test(\"idVehicule présent\", function () {",
+									"    pm.expect(json).to.have.property(\"idVehicule\");",
+									"});",
+									"if (json.idVehicule) {",
+									"    pm.environment.set(\"vehiculeId\", json.idVehicule);",
+									"}"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Consulter le véhicule créé",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/vehicules/{{vehiculeId}}",
+						"description": "Retourne le véhicule créé (200 attendu)."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 200 - véhicule trouvé\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Modifier le véhicule",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"marque\": \"Dacia\",\r\n  \"modele\": \"Sandero Stepway\",\r\n  \"immatriculation\": \"100TU1500\",\r\n  \"couleur\": \"Gris\",\r\n  \"prixJour\": 100,\r\n  \"disponible\": true,\r\n  \"statut\": \"DISPONIBLE\",\r\n  \"categorie\": \"CITADINE\",\r\n  \"agence\": null,\r\n  \"equipements\": []\r\n}"
+						},
+						"url": "{{baseUrl}}/vehicules/{{vehiculeId}}",
+						"description": "Met à jour le véhicule créé (200 attendu). L'immatriculation est l'immatriculation initiale statique utilisée pour éviter le conflit d'unicité."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 200 - véhicule mis à jour\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Prix journalier négatif (400)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"marque\": \"Renault\",\r\n  \"modele\": \"Clio\",\r\n  \"immatriculation\": \"199RU8801\",\r\n  \"prixJour\": -50,\r\n  \"disponible\": true,\r\n  \"statut\": \"DISPONIBLE\",\r\n  \"categorie\": \"CITADINE\",\r\n  \"agence\": null,\r\n  \"equipements\": []\r\n}"
+						},
+						"url": "{{baseUrl}}/vehicules",
+						"description": "Cas d'erreur 400 : prix journalier négatif rejeté par VehiculeServiceImpl.valider."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 400 - prix négatif\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Consulter un véhicule inexistant (404)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/vehicules/999999",
+						"description": "Cas d'erreur 404 : identifiant inexistant."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 404 - véhicule introuvable\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Supprimer le véhicule",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": "{{baseUrl}}/vehicules/{{vehiculeId}}",
+						"description": "Supprime le véhicule créé pendant la session (204 attendu), libère la base pour le run suivant."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 204 - véhicule supprimé\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									"if (pm.response.code === 204) {",
+									"    pm.environment.unset(\"vehiculeId\");",
+									"}"
+								]
+							}
+						}
+					]
+				}
+			],
+			"description": "CRUD complet sur /vehicules"
+		},
+		{
+			"name": "Clients",
+			"item": [
+				{
+					"name": "Lister les clients",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/clients",
+						"description": "Retourne tous les clients (200 attendu)."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 200 - liste des clients\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Enregistrer un client (capture clientId)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nom\": \"Ben Salah\",\r\n  \"prenom\": \"Ahmed\",\r\n  \"email\": \"ahmed.bensalah{{$randomInt}}@example.tn\",\r\n  \"telephone\": \"98123456\",\r\n  \"numPermis\": \"P{{$randomInt}}{{$randomInt}}{{$randomInt}}{{$randomInt}}{{$randomInt}}{{$randomInt}}{{$randomInt}}{{$randomInt}}/{{$randomInt}}\",\r\n  \"dateInscription\": \"2026-10-23\",\r\n  \"reservations\": []\r\n}"
+						},
+						"url": "{{baseUrl}}/clients",
+						"description": "Crée un client (201 attendu) et enregistre l'idClient généré dans la variable d'environnement clientId. Champs uniques (email, numPermis) rendus aléatoires pour éviter les conflits lors des re-runs."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 201 - client créé\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var json = pm.response.json();",
+									"pm.test(\"idClient présent\", function () {",
+									"    pm.expect(json).to.have.property(\"idClient\");",
+									"});",
+									"if (json.idClient) {",
+									"    pm.environment.set(\"clientId\", json.idClient);",
+									"}"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Consulter le client créé",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/clients/{{clientId}}",
+						"description": "Retourne le client créé (200 attendu)."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 200 - client trouvé\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Modifier le client",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nom\": \"Ben Salah\",\r\n  \"prenom\": \"Ahmed\",\r\n  \"email\": \"ahmed.bensalah@example.tn\",\r\n  \"telephone\": \"98123457\",\r\n  \"numPermis\": \"12345678\",\r\n  \"dateInscription\": \"2026-10-23\",\r\n  \"reservations\": []\r\n}"
+						},
+						"url": "{{baseUrl}}/clients/{{clientId}}",
+						"description": "Met à jour le client créé (200 attendu)."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 200 - client mis à jour\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Enregistrer un client sans email (400)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nom\": \"Trabelsi\",\r\n  \"prenom\": \"Leila\",\r\n  \"email\": \"\",\r\n  \"telephone\": \"98111222\",\r\n  \"numPermis\": \"87654321\",\r\n  \"dateInscription\": \"2026-10-23\",\r\n  \"reservations\": []\r\n}"
+						},
+						"url": "{{baseUrl}}/clients",
+						"description": "Cas d'erreur 400 : email obligatoire manquant (IllegalArgumentException -> GlobalExceptionHandler)."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 400 - email manquant\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Consulter un client inexistant (404)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/clients/999999",
+						"description": "Cas d'erreur 404 : identifiant inexistant."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 404 - client introuvable\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Supprimer le client",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": "{{baseUrl}}/clients/{{clientId}}",
+						"description": "Supprime le client créé pendant la session (204 attendu), libère la base pour le run suivant."
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Statut 204 - client supprimé\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									"if (pm.response.code === 204) {",
+									"    pm.environment.unset(\"clientId\");",
+									"}"
+								]
+							}
+						}
+					]
+				}
+			],
+			"description": "CRUD complet sur /clients"
+		}
+	],
+	"variable": []
+}
