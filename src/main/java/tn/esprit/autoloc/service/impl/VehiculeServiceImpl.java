@@ -4,7 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import tn.esprit.autoloc.domain.Vehicule;
+import tn.esprit.autoloc.dto.VehiculeRequestDTO;
+import tn.esprit.autoloc.dto.VehiculeResponseDTO;
 import tn.esprit.autoloc.exception.ResourceNotFoundException;
+import tn.esprit.autoloc.mapper.VehiculeMapper;
 import tn.esprit.autoloc.repository.IVehiculeRepository;
 import tn.esprit.autoloc.service.IVehiculeService;
 
@@ -15,41 +18,34 @@ import java.util.List;
 public class VehiculeServiceImpl implements IVehiculeService {
 
     private final IVehiculeRepository vehiculeRepository;
+    private final VehiculeMapper vehiculeMapper;
 
     @Override
-    public Vehicule create(Vehicule vehicule) {
-        if (vehicule.getIdVehicule() != null) {
+    public VehiculeResponseDTO create(VehiculeRequestDTO vehicule) {
+        Vehicule vehiculeToSave = vehiculeMapper.toEntity(vehicule);
+        if (vehiculeToSave.getIdVehicule() != null) {
             throw new IllegalArgumentException("L'identifiant du véhicule doit être null lors de la création");
         }
         valider(vehicule);
-        return vehiculeRepository.save(vehicule);
+        return vehiculeMapper.toResponseDTO(vehiculeRepository.save(vehiculeToSave));
     }
 
     @Override
-    public Vehicule findById(Long id) {
-        return vehiculeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Vehicule", id));
+    public VehiculeResponseDTO findById(Long id) {
+        return vehiculeMapper.toResponseDTO(findEntity(id));
     }
 
     @Override
-    public List<Vehicule> findAll() {
-        return vehiculeRepository.findAll();
+    public List<VehiculeResponseDTO> findAll() {
+        return vehiculeMapper.toResponseDTOList(vehiculeRepository.findAll());
     }
 
     @Override
-    public Vehicule update(Long id, Vehicule vehicule) {
-        Vehicule existing = findById(id);
+    public VehiculeResponseDTO update(Long id, VehiculeRequestDTO vehicule) {
+        Vehicule existing = findEntity(id);
         valider(vehicule);
-        existing.setMarque(vehicule.getMarque());
-        existing.setModele(vehicule.getModele());
-        existing.setImmatriculation(vehicule.getImmatriculation());
-        existing.setCouleur(vehicule.getCouleur());
-        existing.setPrixJour(vehicule.getPrixJour());
-        existing.setDisponible(vehicule.isDisponible());
-        existing.setStatut(vehicule.getStatut());
-        existing.setCategorie(vehicule.getCategorie());
-        existing.setAgence(vehicule.getAgence());
-        return vehiculeRepository.save(existing);
+        vehiculeMapper.updateEntityFromDTO(existing, vehicule);
+        return vehiculeMapper.toResponseDTO(vehiculeRepository.save(existing));
     }
 
     @Override
@@ -60,8 +56,13 @@ public class VehiculeServiceImpl implements IVehiculeService {
         vehiculeRepository.deleteById(id);
     }
 
-    private void valider(Vehicule vehicule) {
-        if (vehicule.getPrixJour() < 0) {
+    private Vehicule findEntity(Long id) {
+        return vehiculeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Vehicule", id));
+    }
+
+    private void valider(VehiculeRequestDTO vehicule) {
+        if (vehicule.prixJour() < 0) {
             throw new IllegalArgumentException("Le prix journalier du véhicule ne peut pas être négatif");
         }
     }
