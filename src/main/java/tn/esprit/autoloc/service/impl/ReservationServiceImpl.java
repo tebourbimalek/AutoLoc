@@ -4,7 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import tn.esprit.autoloc.domain.Reservation;
+import tn.esprit.autoloc.dto.ReservationRequestDTO;
+import tn.esprit.autoloc.dto.ReservationResponseDTO;
 import tn.esprit.autoloc.exception.ResourceNotFoundException;
+import tn.esprit.autoloc.mapper.ReservationMapper;
 import tn.esprit.autoloc.repository.IReservationRepository;
 import tn.esprit.autoloc.service.IReservationService;
 
@@ -15,37 +18,32 @@ import java.util.List;
 public class ReservationServiceImpl implements IReservationService {
 
     private final IReservationRepository reservationRepository;
+    private final ReservationMapper reservationMapper;
 
     @Override
-    public Reservation create(Reservation reservation) {
-        if (reservation.getIdReservation() != null) {
+    public ReservationResponseDTO create(ReservationRequestDTO reservation) {
+        Reservation reservationToSave = reservationMapper.toEntity(reservation);
+        if (reservationToSave.getIdReservation() != null) {
             throw new IllegalArgumentException("L'identifiant de la réservation doit être null lors de la création");
         }
-        valider(reservation);
-        return reservationRepository.save(reservation);
+        return reservationMapper.toResponseDTO(reservationRepository.save(reservationToSave));
     }
 
     @Override
-    public Reservation findById(Long id) {
-        return reservationRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Reservation", id));
+    public ReservationResponseDTO findById(Long id) {
+        return reservationMapper.toResponseDTO(findEntity(id));
     }
 
     @Override
-    public List<Reservation> findAll() {
-        return reservationRepository.findAll();
+    public List<ReservationResponseDTO> findAll() {
+        return reservationMapper.toResponseDTOList(reservationRepository.findAll());
     }
 
     @Override
-    public Reservation update(Long id, Reservation reservation) {
-        Reservation existing = findById(id);
-        valider(reservation);
-        existing.setDateDebut(reservation.getDateDebut());
-        existing.setDateFin(reservation.getDateFin());
-        existing.setStatut(reservation.getStatut());
-        existing.setClient(reservation.getClient());
-        existing.setVehicule(reservation.getVehicule());
-        return reservationRepository.save(existing);
+    public ReservationResponseDTO update(Long id, ReservationRequestDTO reservation) {
+        Reservation existing = findEntity(id);
+        reservationMapper.updateEntityFromDTO(existing, reservation);
+        return reservationMapper.toResponseDTO(reservationRepository.save(existing));
     }
 
     @Override
@@ -56,12 +54,8 @@ public class ReservationServiceImpl implements IReservationService {
         reservationRepository.deleteById(id);
     }
 
-    private void valider(Reservation reservation) {
-        if (reservation.getDateDebut() == null || reservation.getDateFin() == null) {
-            throw new IllegalArgumentException("Les dates de début et de fin de la réservation sont obligatoires");
-        }
-        if (reservation.getDateFin().isBefore(reservation.getDateDebut())) {
-            throw new IllegalArgumentException("La date de fin de la réservation ne peut pas être avant la date de début");
-        }
+    private Reservation findEntity(Long id) {
+        return reservationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation", id));
     }
 }
