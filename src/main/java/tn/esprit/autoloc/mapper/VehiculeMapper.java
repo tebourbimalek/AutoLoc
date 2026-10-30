@@ -5,8 +5,6 @@ import org.springframework.stereotype.Component;
 import tn.esprit.autoloc.domain.Agence;
 import tn.esprit.autoloc.domain.Equipement;
 import tn.esprit.autoloc.domain.Vehicule;
-import tn.esprit.autoloc.dto.EquipementMiniDTO;
-import tn.esprit.autoloc.dto.AgenceMiniDTO;
 import tn.esprit.autoloc.dto.VehiculeRequestDTO;
 import tn.esprit.autoloc.dto.VehiculeResponseDTO;
 import tn.esprit.autoloc.exception.ResourceNotFoundException;
@@ -45,16 +43,12 @@ public class VehiculeMapper {
         return vehicule;
     }
 
-    /** Expose un véhicule en DTO de réponse (mini-DTO pour les relations, pas d'entité). */
+    /** Expose un véhicule en DTO de réponse (relations par identifiant, pas d'entité). */
     public VehiculeResponseDTO toResponseDTO(Vehicule vehicule) {
-        AgenceMiniDTO agence = null;
-        Agence a = vehicule.getAgence();
-        if (a != null) {
-            agence = new AgenceMiniDTO(a.getIdAgence(), a.getNom(), a.getVille());
-        }
-        List<EquipementMiniDTO> equipements = vehicule.getEquipements() == null ? List.of()
+        Long agenceId = vehicule.getAgence() == null ? null : vehicule.getAgence().getIdAgence();
+        List<Long> equipementIds = vehicule.getEquipements() == null ? List.of()
                 : vehicule.getEquipements().stream()
-                        .map(e -> new EquipementMiniDTO(e.getIdEquipement(), e.getLibelle()))
+                        .map(Equipement::getIdEquipement)
                         .toList();
         return new VehiculeResponseDTO(
                 vehicule.getIdVehicule(),
@@ -66,8 +60,8 @@ public class VehiculeMapper {
                 vehicule.isDisponible(),
                 vehicule.getStatut(),
                 vehicule.getCategorie(),
-                agence,
-                equipements
+                agenceId,
+                equipementIds
         );
     }
 

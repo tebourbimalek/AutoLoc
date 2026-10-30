@@ -7,8 +7,8 @@ import java.util.List;
 
 /**
  * Données exposées au client pour un véhicule.
- * L'agence et les équipements sont exposés sous forme de mini-DTO (pas d'entité JPA),
- * aucune référence circulaire possible.
+ * Les relations sont exposées par identifiant (agenceId, equipementIds),
+ * jamais comme entités JPA, pour rester simple et éviter les références circulaires.
  */
 public record VehiculeResponseDTO(
         Long idVehicule,
@@ -20,7 +20,7 @@ public record VehiculeResponseDTO(
         boolean disponible,
         StatutVehicule statut,
         CategorieVehicule categorie,
-        AgenceMiniDTO agence,              // mini-DTO ou null
-        List<EquipementMiniDTO> equipements
+        Long agenceId,
+        List<Long> equipementIds
 ) {
 }
